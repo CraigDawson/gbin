@@ -1,0 +1,1855 @@
+<!-- Creator     : groff version 1.18.1.4 -->
+<!-- CreationDate: Thu Feb 26 12:51:31 2015 -->
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta name="Content-Style" content="text/css">
+<title>search</title>
+</head>
+<body>
+
+<h1 align=center>search</h1>
+<a href="#SEARCH">SEARCH</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#QUICK EXAMPLE">QUICK EXAMPLE</a><br>
+<a href="#BASIC OVERVIEW">BASIC OVERVIEW</a><br>
+<a href="#OPTIONS TELLING *WHERE* TO SEARCH">OPTIONS TELLING *WHERE* TO SEARCH</a><br>
+<a href="#OPTIONS CONTROLLING WHICH FILES TO CONSIDER AND EXCLUDE">OPTIONS CONTROLLING WHICH FILES TO CONSIDER AND EXCLUDE</a><br>
+<a href="#OPTIONS TELLING WHAT TO DO WITH FILES THAT WILL BE CONSIDERED">OPTIONS TELLING WHAT TO DO WITH FILES THAT WILL BE CONSIDERED</a><br>
+<a href="#GREP-LIKE OPTIONS">GREP-LIKE OPTIONS</a><br>
+<a href="#OPTIONS WHICH INDICATE HOW TO DISPLAY">OPTIONS WHICH INDICATE HOW TO DISPLAY</a><br>
+<a href="#OTHER OPTIONS">OTHER OPTIONS</a><br>
+<a href="#STARTUP FILE">STARTUP FILE</a><br>
+<a href="#RETURN VALUE">RETURN VALUE</a><br>
+<a href="#TODO">TODO</a><br>
+<a href="#BUGS">BUGS</a><br>
+<a href="#AUTHOR">AUTHOR</a><br>
+<a href="#LATEST SOURCE">LATEST SOURCE</a><br>
+
+<hr>
+<a name="SEARCH"></a>
+<h2>SEARCH</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>search &minus; search files (a&rsquo;la grep) in a whole
+directory tree.</p>
+</td>
+</table>
+<a name="SYNOPSIS"></a>
+<h2>SYNOPSIS</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>search [ grep-like and find-like options] [regex
+....]</p>
+</td>
+</table>
+<a name="DESCRIPTION"></a>
+<h2>DESCRIPTION</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><i>Search</i> is more or less a combo of
+&rsquo;find&rsquo; and &rsquo;grep&rsquo; (although the
+regular expression flavor is that of the perl being used,
+which is closer to egrep&rsquo;s than grep&rsquo;s).</p>
+<!-- INDENTATION -->
+<p><i>Search</i> does generally the same kind of thing
+that</p>
+<!-- INDENTATION -->
+<pre>   find &lt;blah blah&gt; | xargs egrep &lt;blah blah&gt;
+</pre>
+<!-- INDENTATION -->
+<p>does, but is <i>much</i> more powerful and efficient (and
+intuitive, I think).</p>
+<!-- INDENTATION -->
+<p>This manual describes <i>search</i> as of version
+&quot;960325.7&quot;. You can always find the latest version
+at</p>
+<!-- INDENTATION -->
+<pre>   http://www.wg.omron.co.jp/~jfriedl/perl/index.html
+</pre>
+</td>
+</table>
+<a name="QUICK EXAMPLE"></a>
+<h2>QUICK EXAMPLE</h2>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Basic use is simple:</p>
+<!-- INDENTATION -->
+<pre>    % search jeff
+</pre>
+<!-- INDENTATION -->
+<p>will search files in the current directory, and all sub
+directories, for files that have &quot;jeff&quot; in them.
+The lines will be listed with the containing file&rsquo;s
+name prepended.</p>
+<!-- INDENTATION -->
+<p>If you list more than one regex, such as with</p>
+<!-- INDENTATION -->
+<pre>    % search jeff Larry Randal+ &rsquo;Stoc?k&rsquo; &rsquo;C.*son&rsquo;
+</pre>
+<!-- INDENTATION -->
+<p>then a line containing any of the regexes will be listed.
+This makes it effectively the same as</p>
+<!-- INDENTATION -->
+<pre>    % search &rsquo;jeff|Larry|Randal+|Stoc?k|C.*son&rsquo;
+</pre>
+<!-- INDENTATION -->
+<p>However, listing them separately is much more efficient
+(and is easier to type).</p>
+<!-- INDENTATION -->
+<p>Note that in the case of these examples, the
+<b>&minus;w</b> (list whole-words only) option would be
+useful. And if your terminal supports ANSI escape sequences,
+you can use <b>&minus;bold</b> to higlight the items found.
+Furthermore, if your display supports color as well, you can
+use <b>&minus;red</b>, <b>&minus;green</b>,
+<b>&minus;yellow</b>, etc. instead to have the searched
+items marked with the given color.</p>
+<!-- INDENTATION -->
+<p>Normally, various kinds of files are automatically
+removed from consideration. If it has has a certain ending
+(such as &quot;.tar&quot;, &quot;.Z&quot;, &quot;.o&quot;,
+.etc), or if the beginning of the file looks like a binary,
+it&rsquo;ll be excluded. You can control exactly how this
+works -- see below. One quick way to override this is to use
+the <b>&minus;all</b> option, which means to consider all
+the files that would normally be automatically excluded. Or,
+if you&rsquo;re curious, you can use <b>&minus;why</b> to
+have notes about what files are skipped (and why) printed to
+stderr.</p>
+</td>
+</table>
+<a name="BASIC OVERVIEW"></a>
+<h2>BASIC OVERVIEW</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Normally, the search starts in the current directory,
+considering files in all subdirectories.</p>
+<!-- INDENTATION -->
+<p>You can use the <i>~/.search</i> file to control ways to
+automatically exclude files. If you don&rsquo;t have this
+file, a default one will kick in, which automatically
+add</p>
+<!-- INDENTATION -->
+<pre>    -skip .o .Z .gif
+</pre>
+<!-- INDENTATION -->
+<p>(among others) to exclude those kinds of files (which you
+probably want to skip when searching for text, as is
+normal). Files that look to be be binary will also be
+excluded.</p>
+<!-- INDENTATION -->
+<p>Files ending with &quot;#&quot; and &quot;~&quot; will
+also be excluded unless the <b>-x~</b> option is given.</p>
+<!-- INDENTATION -->
+<p>You can use <b>-showrc</b> to show what kinds of files
+will normally be skipped. See the section on the startup
+file for more info.</p>
+<!-- INDENTATION -->
+<p>You can use the <b>-all</b> option to indicate you want
+to consider all files that would otherwise be skipped by the
+startup file.</p>
+<!-- INDENTATION -->
+<p>Based upon various other flags (see &quot;WHICH FILES TO
+CONSIDER&quot; below), more files might be removed from
+consideration. For example</p>
+<!-- INDENTATION -->
+<pre>    -mtime 3
+</pre>
+<!-- INDENTATION -->
+<p>will exclude files that aren&rsquo;t at least three days
+old (change the 3 to -3 to exclude files that are more than
+three days old), while</p>
+<!-- INDENTATION -->
+<pre>    -skip .*
+</pre>
+<!-- INDENTATION -->
+<p>would exclude any file beginning with a dot (of course,
+&rsquo;.&rsquo; and &rsquo;..&rsquo; are special and always
+excluded).</p>
+<!-- INDENTATION -->
+<p>If you&rsquo;d like to see what files are being excluded,
+and why, you can get the list via the <b>&minus;why</b>
+option.</p>
+<!-- INDENTATION -->
+<p>If a file makes it past all the checks, it is then
+&quot;considered&quot;. This usually means it is greped for
+the regular expressions you gave on the command line.</p>
+<!-- INDENTATION -->
+<p>If any of the regexes match a line, the line is printed.
+However, if <b>-list</b> is given, just the filename is
+printed. Or, if <b>-nice</b> is given, a somewhat more
+(human-)readable output is generated.</p>
+<!-- INDENTATION -->
+<p>If you&rsquo;re searching a huge tree and want to keep
+informed about how the search is progressing, <b>-v</b> will
+print (to stderr) the current directory being searched.
+Using <b>-vv</b> will also print the current file
+&quot;every so often&quot;, which could be useful if a
+directory is huge. Using <b>-vvv</b> will print the update
+with every file.</p>
+<!-- INDENTATION -->
+<p>Below is the full listing of options.</p>
+</td>
+</table>
+<a name="OPTIONS TELLING *WHERE* TO SEARCH"></a>
+<h2>OPTIONS TELLING *WHERE* TO SEARCH</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-dir</b> <i>DIR</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Start searching at the named directory instead of the
+current directory. If multiple <b>-dir</b> arguments are
+given, multiple trees will be searched.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-ddir</b> <i>DIR</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Like <b>-dir</b> except it flushes any previous
+<b>-dir</b> directories (i.e. &quot;-dir A -dir B -dir
+C&quot; will search A, B, and C, while &quot;-dir A -ddir B
+-dir C&quot; will search only B and C. This might be of use
+in the startup file (see that section below).</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="13%"></td>
+<td width="7%">
+
+<p><b>-xdev</b></p>
+</td>
+<td width="1%"></td>
+<td width="76%">
+
+<p>Stay on the same filesystem as the starting
+directory/directories.</p>
+</td>
+<tr valign="top" align="left">
+<td width="13%"></td>
+<td width="7%">
+
+<p><b>-sort</b></p>
+</td>
+<td width="1%"></td>
+<td width="76%">
+
+<p>Sort the items in a directory before processing them.
+Normally they are processed in whatever order they happen to
+be read from the directory.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-nolinks</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Don&rsquo;t follow symbolic links. Normally they&rsquo;re
+followed.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-depth=0</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Don&rsquo;t descend into subdirectories. Only a depth of
+0 currently supported.</p>
+</td>
+</table>
+<a name="OPTIONS CONTROLLING WHICH FILES TO CONSIDER AND EXCLUDE"></a>
+<h2>OPTIONS CONTROLLING WHICH FILES TO CONSIDER AND EXCLUDE</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-mtime</b> <i>NUM</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Only consider files that were last changed more than
+<i>NUM</i> days ago (less than <i>NUM</i> days if <i>NUM</i>
+has &rsquo;-&rsquo; prepended, i.e. &quot;-mtime -2.5&quot;
+means to consider files that have been changed in the last
+two and a half days).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-older FILE</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Only consider files that have not changed since
+<i>FILE</i> was last changed. If there is any upper case in
+the &quot;-older&quot;, &quot;or equal&quot; is added to the
+sense of the test. Therefore, &quot;search -older ./file
+regex&quot; will never consider &quot;./file&quot;, while
+&quot;search -Older ./file regex&quot; will.</p>
+<!-- INDENTATION -->
+<p>If a file is a symbolic link, the time used is that of
+the file and not the link.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-newer</b> <i>FILE</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Opposite of <b>-older</b>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-name</b> <i>GLOB</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Only consider files that match the shell filename pattern
+<i>GLOB</i>. The check is only done on a file&rsquo;s name
+(use <b>-path</b> to check the whole path, and use
+<b>-dname</b> to check directory names).</p>
+<!-- INDENTATION -->
+<p>Multiple specifications can be given by separating them
+with spaces, a&rsquo;la</p>
+<!-- INDENTATION -->
+<pre>    -name &rsquo;*.c *.h&rsquo;
+</pre>
+<!-- INDENTATION -->
+<p>to consider C source and header files. If <i>GLOB</i>
+doesn&rsquo;t contain any special pattern characters, a
+&rsquo;*&rsquo; is prepended. This last example could have
+been given as</p>
+<!-- INDENTATION -->
+<pre>   -name &rsquo;.c .h&rsquo;
+</pre>
+<!-- INDENTATION -->
+<p>It could also be given as</p>
+<!-- INDENTATION -->
+<pre>    -name .c -name .h
+</pre>
+<!-- INDENTATION -->
+<p>or</p>
+<!-- INDENTATION -->
+<pre>    -name &rsquo;*.c&rsquo; -name &rsquo;*.h&rsquo;
+</pre>
+<!-- INDENTATION -->
+<p>or</p>
+<!-- INDENTATION -->
+<pre>    -name &rsquo;*.[ch]&rsquo;
+</pre>
+<!-- INDENTATION -->
+<p>(among others) but in this last case, you have to be sure
+to supply the leading &rsquo;*&rsquo;.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-path</b> <i>GLOB</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Like <b>-name</b> except the entire path is checked
+against the pattern.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-regex REGEX</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Considers files whose names (not paths) match the given
+perl regex exactly.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-iname</b> <i>GLOB</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Case-insensitive version of <b>-name</b>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-ipath</b> <i>GLOB</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Case-insensitive version of <b>-path</b>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-iregex</b> <i>REGEX</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Case-insensitive version of <b>-regex</b>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-dpath</b> <i>GLOB</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Only search down directories whose path matches the given
+pattern (this doesn&rsquo;t apply to the initial directory
+given by <b>-dir</b><i>,</i> of course). Something like</p>
+<!-- INDENTATION -->
+<pre>    -dir /usr/man -dpath /usr/man/man*
+</pre>
+<!-- INDENTATION -->
+<p>would completely skip &quot;/usr/man/cat1&quot;,
+&quot;/usr/man/cat2&quot;, etc.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-dskip</b> <i>GLOB</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Skips directories whose name (not path) matches the given
+pattern. Something like</p>
+<!-- INDENTATION -->
+<pre>    -dir /usr/man -dskip cat*
+</pre>
+<!-- INDENTATION -->
+<p>would completely skip any directory in the tree whose
+name begins with &quot;cat&quot; (including
+&quot;/usr/man/cat1&quot;, &quot;/usr/man/cat2&quot;,
+etc.).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-dregex</b> <i>REGEX</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Like <b>-dpath</b><i>,</i> but the pattern is a full perl
+regex. Note that this quite different from <b>-regex</b>
+which considers only file names (not paths). This option
+considers full directory paths (not just names). It&rsquo;s
+much more useful this way. Sorry if it&rsquo;s
+confusing.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-dpath</b> <i>GLOB</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>This option exists, but is probably not very useful. It
+probably wants to be like the &rsquo;-below&rsquo; or
+something I mention in the &quot;TODO&quot; section.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-idpath</b> <i>GLOB</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Case-insensitive version of <b>-dpath</b>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-idskip</b> <i>GLOB</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Case-insensitive version of <b>-dskip</b>.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-idregex</b> <i>REGEX</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Case-insensitive version of <b>-dregex</b>.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="6%">
+
+<p><b>-all</b></p>
+</td>
+<td width="4%"></td>
+<td width="76%">
+
+<p>Ignore any &rsquo;magic&rsquo; or &rsquo;option&rsquo;
+lines in the startup file. The effect is that all files that
+would otherwise be automatically excluded are
+considered.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-x</b><i>SPECIAL</i></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Arguments starting with <b>-x</b> (except <b>-xdev</b>,
+explained elsewhere) do special interaction with the
+<i>~/.search</i> startup file. Something like</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="3" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="30%"></td>
+<td width="7%">
+
+<p>-xflag1 -xflag2</p>
+</td>
+<td width="61%">
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>will turn on &quot;flag1&quot; and &quot;flag2&quot; in
+the startup file (and is the same as
+&quot;-xflag1,flag2&quot;). You can use this to write your
+own rules for what kinds of files are to be considered.</p>
+<!-- INDENTATION -->
+<p>For example, the internal-default startup file contains
+the line</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="3" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="30%"></td>
+<td width="7%">
+
+<p>&lt;!~&gt; option: -skip &rsquo;~ #&rsquo;</p>
+</td>
+<td width="61%">
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>This means that if the <b>-x~</b> flag is <i>not</i>
+seen, the option</p>
+<!-- INDENTATION -->
+<pre>    -skip &rsquo;~ #&rsquo;
+</pre>
+<!-- INDENTATION -->
+<p>should be done. The effect is that emacs temp and backup
+files are not normally considered, but you can included them
+with the -x~ flag.</p>
+<!-- INDENTATION -->
+<p>You can write your own rules to customize <i>search</i>
+in powerful ways. See the STARTUP FILE section below.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="13%"></td>
+<td width="6%">
+
+<p><b>-why</b></p>
+</td>
+<td width="3%"></td>
+<td width="76%">
+
+<p>Print a message (to stderr) when and why a file is not
+considered.</p>
+</td>
+</table>
+<a name="OPTIONS TELLING WHAT TO DO WITH FILES THAT WILL BE CONSIDERED"></a>
+<h2>OPTIONS TELLING WHAT TO DO WITH FILES THAT WILL BE CONSIDERED</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-find</b> or <b>-b</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>This option changes the basic action of
+<i>search</i>.</p>
+<!-- INDENTATION -->
+<p>Normally, if a file is considered, it is searched for the
+regular expressions as described earlier. However, if this
+option is given, the filename is printed and no searching
+takes place. This turns <i>search</i> into a
+&rsquo;find&rsquo; of some sorts.</p>
+<!-- INDENTATION -->
+<p>In this case, no regular expressions are needed on the
+command line (any that are there are silently ignored).</p>
+<!-- INDENTATION -->
+<p>This is not intended to be a replacement for the
+&rsquo;find&rsquo; program, but to aid you in understanding
+just what files are getting past the exclusion checks. If
+you really want to use it as a sort of replacement for the
+&rsquo;find&rsquo; program, you might want to use
+<b>-all</b> so that it doesn&rsquo;t waste time checking to
+see if the file is binary, etc (unless you really want that,
+of course).</p>
+<!-- INDENTATION -->
+<p>If you use <b>-find</b>, none of the &quot;GREP-LIKE
+OPTIONS&quot; (below) matter.</p>
+<!-- INDENTATION -->
+<p>As a replacement for &rsquo;find&rsquo;, <i>search</i> is
+probably a bit slower (or in the case of GNU find, a lot
+slower -- GNU find is <i>unbelievably</i> fast). However,
+&quot;search -ffind&quot; might be more useful than
+&rsquo;find&rsquo; when options such as <b>-skip</b> are
+used (at least until &rsquo;find&rsquo; gets such
+functionality).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-ffind</b> or <b>-ff</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>A faster more &rsquo;find&rsquo;-like find. Does</p>
+<!-- INDENTATION -->
+<pre>    -find  -all -dorep
+</pre>
+</td>
+</table>
+<a name="GREP-LIKE OPTIONS"></a>
+<h2>GREP-LIKE OPTIONS</h2>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>These options control how a searched file is accessed,
+and how things are printed.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-F</b> or <b>-lit</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Causes arguments to be taken as literal text rather than
+as perl regular expressions.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-R</b> or <b>-regex</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Undoes <b>-T</b>. Regex arguments are indeed taken as
+perl regular expressions.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="6%">
+
+<p><b>-i</b></p>
+</td>
+<td width="4%"></td>
+<td width="76%">
+
+<p>Ignore letter case when matching.</p>
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="6%">
+
+<p><b>-noi</b></p>
+</td>
+<td width="4%"></td>
+<td width="76%">
+
+<p>Don&rsquo;t ignore letter case when matching (useful for
+overriding a <b>-i</b> in the startup file)</p>
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="6%">
+
+<p><b>-w</b></p>
+</td>
+<td width="4%"></td>
+<td width="76%">
+
+<p>Consider only whole-word matches (&quot;whole word&quot;
+as defined by perl&rsquo;s &quot;\b&quot; regex).</p>
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="6%">
+
+<p><b>-u</b></p>
+</td>
+<td width="4%"></td>
+<td width="76%">
+
+<p>If the regex(es) is/are simple, try to modify them so
+that they&rsquo;ll work in manpage-like underlined text
+(i.e. like _^Ht_^Hh_^Hi_^Hs). This is very rudimentary at
+the moment.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-list</b> or <b>-l</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p><b>-list</b> Don&rsquo;t print matching lines, but the
+names of files that contain matching lines. This will likely
+be *much* faster, as special optimizations are made --
+particularly with large files.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>-n</b></p>
+</td>
+<td width="1%"></td>
+<td width="76%">
+
+<p>Pepfix each line by its line number.</p>
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>-nice</b></p>
+</td>
+<td width="1%"></td>
+<td width="76%">
+
+<p>Not a grep-like option, but similar to <b>-list</b>, so
+included here. <b>-nice</b> will have the output be a bit
+more human-readable, with matching lines printed slightly
+indented after the filename, a&rsquo;la</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>% search foo<br>
+somedir/somefile: line with foo in it<br>
+somedir/somefile: some food for thought<br>
+anotherdir/x: don&rsquo;t be a buffoon!<br>
+%</p>
+<!-- INDENTATION -->
+<p>will become</p>
+<!-- INDENTATION -->
+<pre>   % search -nice foo
+   somedir/somefile:
+     line with foo in it
+     some food for thought
+   anotherdir/x:
+     don&rsquo;t be a buffoon!
+   %
+
+</pre>
+<!-- INDENTATION -->
+<p>This option due to Lionel Cons.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>-nnice</b></p>
+</td>
+<td width="1%"></td>
+<td width="76%">
+
+<p>Be a bit nicer than <b>-nice</b>. Prefix each
+file&rsquo;s output by a rule line, and follow with an extra
+blank line.</p>
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>-h</b></p>
+</td>
+<td width="1%"></td>
+<td width="76%">
+
+<p>Don&rsquo;t prepend each output line with the name of
+the file (meaningless when <b>-find</b> or <b>-l</b> are
+given).</p>
+</td>
+</table>
+<a name="OPTIONS WHICH INDICATE HOW TO DISPLAY"></a>
+<h2>OPTIONS WHICH INDICATE HOW TO DISPLAY</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>In addition to the <b>&minus;nice</b> and
+<b>&minus;nnice</b> from just above, you can use the
+following if your display supports ANSI escape sequences
+(most systems seem to).</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="5" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>&minus;bold</b></p>
+</td>
+<td width="10%"></td>
+<td width="60%">
+
+<p>Show the found items in reverse video.</p>
+</td>
+<td width="7%">
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>&minus;red</b></p>
+</td>
+<td width="10%"></td>
+<td width="60%">
+
+<p>Show the found items in red.</p>
+</td>
+<td width="7%">
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>&minus;green</b></p>
+</td>
+<td width="10%"></td>
+<td width="60%">
+
+<p>Show the found items in green.</p>
+</td>
+<td width="7%">
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>&minus;yellow</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Show the found items in yellow.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="5" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>&minus;blue</b></p>
+</td>
+<td width="12%"></td>
+<td width="47%">
+
+<p>Show the found items in blue.</p>
+</td>
+<td width="18%">
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>&minus;cyan</b></p>
+</td>
+<td width="12%"></td>
+<td width="47%">
+
+<p>Show the found items in cyan.</p>
+</td>
+<td width="18%">
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>&minus;white</b></p>
+</td>
+<td width="12%"></td>
+<td width="47%">
+
+<p>Show the found items in white.</p>
+</td>
+<td width="18%">
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>&minus;black</b></p>
+</td>
+<td width="12%"></td>
+<td width="47%">
+
+<p>Show the found items in black.</p>
+</td>
+<td width="18%">
+</td>
+</table>
+<a name="OTHER OPTIONS"></a>
+<h2>OTHER OPTIONS</h2>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="5" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="7%">
+
+<p><b>-help</b></p>
+</td>
+<td width="13%"></td>
+<td width="43%">
+
+<p>Print the usage information.</p>
+</td>
+<td width="23%">
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-version</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Print the version information and quit.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="3%">
+
+<p><b>-v</b></p>
+</td>
+<td width="7%"></td>
+<td width="76%">
+
+<p>Set the level of message verbosity. <b>-v</b> will print
+a note whenever a new directory is entered. <b>-vv</b> will
+also print a note &quot;every so often&quot;. This can be
+useful to see what&rsquo;s happening when searching huge
+directories. <b>-vvv</b> will print a new with every file.
+<b>-vvvv</b> is -vvv plus <b>-why</b>.</p>
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="3%">
+
+<p><b>-e</b></p>
+</td>
+<td width="7%"></td>
+<td width="76%">
+
+<p>This ends the options, and can be useful if the regex
+begins with &rsquo;-&rsquo;.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><b>-showrc</b></p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Shows what is being considered in the startup file, then
+exits.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="9%">
+
+<p><b>-dorep</b></p>
+</td>
+<td width="1%"></td>
+<td width="76%">
+
+<p>Normally, an identical file won&rsquo;t be checked twice
+(even with multiple hard or symbolic links). If you&rsquo;re
+just trying to do a fast <b>-find</b>, the bookkeeping to
+remember which files have been seen is not desirable, so you
+can eliminate the bookkeeping with this flag.</p>
+</td>
+</table>
+<a name="STARTUP FILE"></a>
+<h2>STARTUP FILE</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>When <i>search</i> starts up, it processes the directives
+in <i>~/.search</i>. If no such file exists, a default
+internal version is used.</p>
+<!-- INDENTATION -->
+<p>The internal version looks like:</p>
+<!-- INDENTATION -->
+<pre>   magic: 32 : $H =~ m/[\x00-\x06\x10-\x1a\x1c-\x1f\x80\xff]{2}/
+   filter: $N =~ m/.(gz|Z)$/ : &quot;zcat %&quot;
+   option: -skip &rsquo;.a .COM .elc .EXE .o .pbm .xbm .dvi&rsquo;
+   option: -iskip &rsquo;.tarz .zip .lzh .jpg .jpeg .gif .uu&rsquo;
+   &lt;!~&gt; option: -skip &rsquo;~ #&rsquo;
+
+</pre>
+<!-- INDENTATION -->
+<p>If you wish to create your own &quot;~/.search&quot;, you
+might consider copying the above, and then working from
+there.</p>
+<!-- INDENTATION -->
+<p>There are three kinds of directives in a startup file:
+&quot;filter&quot;, &quot;magic&quot; and
+&quot;option&quot;.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="3" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="13%"></td>
+<td width="9%">
+
+<p>OPTION</p>
+</td>
+<td width="76%">
+
+<p>Option lines will automatically do the command-line
+options given. For example, the line</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>option: -v<br>
+in you startup file will turn on -v every time, without
+needing to type it on the command line.</p>
+<!-- INDENTATION -->
+<p>The text on the line after the &quot;option:&quot;
+directive is processed like the Bourne shell, so make sure
+to pay attention to quoting.</p>
+<!-- INDENTATION -->
+<pre>    option: -skip .exe .com
+</pre>
+<!-- INDENTATION -->
+<p>will give an error (&quot;.com&quot; by itself
+isn&rsquo;t a valid option), while</p>
+<!-- INDENTATION -->
+<pre>    option: -skip &quot;.exe .com&quot;
+</pre>
+<!-- INDENTATION -->
+<p>will properly include it as part of -skip&rsquo;s
+argument.</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="3" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="10%">
+
+<p>MAGIC</p>
+</td>
+<td width="76%">
+
+<p>Magic lines are used to determine if a file should be
+considered a binary or not (the term &quot;magic&quot;
+refers to checking a file&rsquo;s magic number). These are
+described in more detail below.</p>
+</td>
+<tr valign="top" align="left">
+<td width="12%"></td>
+<td width="10%">
+
+<p>FILTER</p>
+</td>
+<td width="76%">
+
+<p>Filter lines are used to apply a command to a file to
+get the text to search. The format of a <b>FILTER</b> line
+is:</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>filter : EXPRESSION: &quot;command....&quot;<br>
+where <i>EXPRESSION</i> is a perl expression used to
+determine if the filter should be applied to a given file
+(the file&rsquo;s name will be in the variable $N, but
+remember that files excluded via <b>-skip</b>, etc.,
+won&rsquo;t even be considered for a filter). If true, the
+<i>COMMAND</i> will be executed and its standard-output will
+be checked. &lsquo;&lsquo;<b>%</b>&rsquo;&rsquo; in the
+command string will be replace by the filename.</p>
+<!-- INDENTATION -->
+<p>The most common example would be to uncompress a file on
+the fly, i.e.</p>
+<!-- INDENTATION -->
+<pre>   filter: $N =~ m/.(gz|Z)$/ : &quot;zcat %&quot;
+</pre>
+<!-- INDENTATION -->
+<p>Note that had the &lsquo;&lsquo;<b>zcat</b>&rsquo;&rsquo;
+been &lsquo;&lsquo;<b>gunzip</b>&rsquo;&rsquo; instead,
+you&rsquo;d uncompress your files in place instead of
+searching them, so take care when specifying a filter! If
+you&rsquo;re worried about mixing up GNU&rsquo;z zcat with
+an old one, you might use seperate ones as with:</p>
+<!-- INDENTATION -->
+<pre>   filter: $N =~ m/.gz$/ : &quot;/my/GNU/binaries/zcat %&quot;
+   filter: $N =~ m/.Z$/ : &quot;/the/non-GNU/binaries/zcat %&quot;
+</pre>
+<!-- INDENTATION -->
+<p>Also note that when a filter is applied, the <b>MAGIC</b>
+section is ignored for the file (this can be considered a
+bug, so it might change in the future).</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Blank lines and comments (lines beginning with
+&rsquo;#&rsquo;) are allowed.</p>
+<!-- INDENTATION -->
+<p>If a line begins with &lt;...&gt;, then it&rsquo;s a
+check to see if the directive on the line should be done or
+not. The stuff inside the &lt;...&gt; can contain
+perl&rsquo;s &amp;&amp; (and), || (or), ! (not), and parens
+for grouping, along with &quot;flags&quot; that might be
+indicated by the user with <b>-x</b><i>flag</i> options.</p>
+<!-- INDENTATION -->
+<p>For example, using &quot;-xfoo&quot; will cause
+&quot;foo&quot; to be true inside the &lt;...&gt; blocks.
+Therefore, a line beginning with &quot;&lt;foo&gt;&quot;
+would be done only when &quot;-xfoo&quot; had been
+specified, while a line beginning with
+&quot;&lt;!foo&gt;&quot; would be done only when
+&quot;-xfoo&quot; is not specified (of course, a line
+without any &lt;...&gt; is done in either case).</p>
+<!-- INDENTATION -->
+<p>A realistic example might be</p>
+</td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="3" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="18%"></td>
+<td width="7%">
+
+<p>&lt;!v&gt; -vv</p>
+</td>
+<td width="73%">
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>This will cause -vv messages to be the default, but allow
+&quot;-xv&quot; to override.</p>
+<!-- INDENTATION -->
+<p>There are a few flags that are set
+automatically:</p></td>
+</table>
+<!-- TABS -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="4" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="9%">
+
+<p><b>TTY</b></p>
+</td>
+<td width="1%"></td>
+<td width="66%">
+
+<p>true if the output is to the screen (as opposed to being
+redirected to a file). You can force this (as with all the
+other automatic flags) with -xTTY.</p>
+</td>
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="9%">
+
+<p><b>-v</b></p>
+</td>
+<td width="1%"></td>
+<td width="66%">
+
+<p>True if -v was specified. If -vv was specified, both
+<b>-v</b> and <b>-vv</b> flags are true (and so on).</p>
+</td>
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="9%">
+
+<p><b>-nice</b></p>
+</td>
+<td width="1%"></td>
+<td width="66%">
+
+<p>True if -nice was specified. Same thing about -nnice as
+for -vv.</p>
+</td>
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="9%">
+
+<p><b>-list</b></p>
+</td>
+<td width="1%"></td>
+<td width="66%">
+
+<p>true if -list (or -l) was given.</p>
+</td>
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="9%">
+
+<p><b>-dir</b></p>
+</td>
+<td width="1%"></td>
+<td width="66%">
+
+<p>true if -dir was given.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Using this info, you might change the last example to</p>
+<!-- INDENTATION -->
+<pre>    &lt;!v &amp;&amp; !-v&gt; option: -vv
+
+</pre>
+<!-- INDENTATION -->
+<p>The added &quot;&amp;&amp; !-v&quot; means &quot;and if
+the &rsquo;-v&rsquo; option not given&quot;. This will allow
+you to use &quot;-v&quot; alone on the command line, and not
+have this directive add the more verbose &quot;-vv&quot;
+automatically.</p>
+<!-- INDENTATION -->
+<p>Some other examples:</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>&lt;!-dir &amp;&amp; !here&gt; option: -dir ~/</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Effectively make the default directory your home
+directory (instead of the current directory). Using -dir or
+-xhere will undo this.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>&lt;tex&gt; option: -name .tex -dir ~/pub</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Create &rsquo;-xtex&rsquo; to search only
+&quot;*.tex&quot; files in your ~/pub directory tree.
+Actually, this could be made a bit better. If you combine
+&rsquo;-xtex&rsquo; and &rsquo;-dir&rsquo; on the command
+line, this directive will add ~/pub to the list, when you
+probably want to use the -dir directory only. You could
+do</p>
+<!-- INDENTATION -->
+<pre>   &lt;tex&gt; option: -name .tex
+   &lt;tex &amp;&amp; !-dir&gt; option: -dir ~/pub
+</pre>
+<!-- INDENTATION -->
+<p>to will allow &rsquo;-xtex&rsquo; to work as before, but
+allow a command-line &quot;-dir&quot; to take precedence
+with respect to ~/pub.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>&lt;fluff&gt; option: -nnice -sort -i -vvv</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>Combine a few user-friendly options into one
+&rsquo;-xfluff&rsquo; option.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>&lt;man&gt; option: -ddir /usr/man -v -w</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="23%"></td>
+<td width="76%">
+<p>When the &rsquo;-xman&rsquo; option is given, search
+&quot;/usr/man&quot; for whole-words (of whatever regex or
+regexes are given on the command line), with -v.</p></td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>The lines in the startup file are executed from top to
+bottom, so something like</p>
+<!-- INDENTATION -->
+<pre>   &lt;both&gt; option: -xflag1 -xflag2
+   &lt;flag1&gt; option: ...whatever...
+   &lt;flag2&gt; option: ...whatever...
+
+</pre>
+<!-- INDENTATION -->
+<p>will allow &rsquo;-xboth&rsquo; to be the same as
+&rsquo;-xflag1 -xflag2&rsquo; (or
+&rsquo;-xflag1,flag2&rsquo; for that matter). However, if
+you put the &quot;&lt;both&gt;&quot; line below the others,
+they will not be true when encountered, so the result would
+be different (and probably undesired).</p>
+<!-- INDENTATION -->
+<p>The &quot;magic&quot; directives are used to determine if
+a file looks to be binary or not. The form of a magic line
+is</p>
+<!-- INDENTATION -->
+<pre>    magic: <i>SIZE</i> : <i>PERLCODE
+</i></pre>
+<!-- INDENTATION -->
+<p>where <i>SIZE</i> is the number of bytes of the file you
+need to check, and <i>PERLCODE</i> is the code to do the
+check. Within <i>PERLCODE</i>, the variable $H will hold at
+least the first <i>SIZE</i> bytes of the file (unless the
+file is shorter than that, of course). It might hold more
+bytes. The perl should evaluate to true if the file should
+be considered a binary.</p>
+<!-- INDENTATION -->
+<p>An example might be</p>
+<!-- INDENTATION -->
+<pre>    magic: 6 : substr($H, 0, 6) eq &rsquo;GIF87a&rsquo;
+</pre>
+<!-- INDENTATION -->
+<p>to test for a GIF (&quot;-iskip .gif&quot; is better, but
+this might be useful if you have images in files without the
+&quot;.gif&quot; extension).</p>
+<!-- INDENTATION -->
+<p>Since the startup file is checked from top to bottom, you
+can be a bit efficient:</p>
+<!-- INDENTATION -->
+<pre>    magic: 6 : ($x6 = substr($H, 0, 6)) eq &rsquo;GIF87a&rsquo;
+    magic: 6 :  $x6                     eq &rsquo;GIF89a&rsquo;
+</pre>
+<!-- INDENTATION -->
+<p>You could also write the same thing as</p>
+<!-- INDENTATION -->
+<pre>  magic: 6 : (($x6 = substr($H, 0, 6)) eq &rsquo;GIF87a&rsquo;) || ## an old gif, or.. \
+</pre>
+</td>
+</table>
+<!-- TABS -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="18%"></td>
+<td width="81%">
+
+<p>$x6 eq &rsquo;GIF89a&rsquo; ## .. a new one.</p>
+</td>
+</table>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>since newlines may be escaped.</p>
+<!-- INDENTATION -->
+<p>The default internal startup file includes</p>
+<!-- INDENTATION -->
+<pre>   magic: 32 : $H =~ m/[\x00-\x06\x10-\x1a\x1c-\x1f\x80\xff]{2}/
+</pre>
+<!-- INDENTATION -->
+<p>which checks for certain non-printable characters, and
+catches a large number of binary files, including most
+system&rsquo;s executables, linkable objects, compressed,
+tarred, and otherwise folded, spindled, and mutilated
+files.</p>
+<!-- INDENTATION -->
+<p>Another example might be</p>
+<!-- INDENTATION -->
+<pre>    ## an archive library
+    magic: 17 : substr($H, 0, 17) eq &quot;!&lt;arch&gt;\n__.SYMDEF&quot;
+</pre>
+</td>
+</table>
+<a name="RETURN VALUE"></a>
+<h2>RETURN VALUE</h2>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p><i>Search</i> returns zero if lines (or files, if
+appropriate) were found, or if no work was requested (such
+as with <b>-help</b>). Returns 1 if no lines (or files) were
+found. Returns 2 on error.</p>
+</td>
+</table>
+<a name="TODO"></a>
+<h2>TODO</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Things I&rsquo;d like to add some day:</p>
+<!-- INDENTATION -->
+<pre>  + show surrounding lines (context).
+  + highlight matched portions of lines.
+  + add &rsquo;-and&rsquo;, which can go between regexes to override
+    the default logical or of the regexes.
+  + add something like
+      -below GLOB
+    which will examine a tree and only consider files that
+    lie in a directory deeper than one named by the pattern.
+  + add &rsquo;warning&rsquo; and &rsquo;error&rsquo; directives.
+  + add &rsquo;help&rsquo; directive.
+</pre>
+</td>
+</table>
+<a name="BUGS"></a>
+<h2>BUGS</h2>
+<!-- INDENTATION -->
+
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>If -xdev and multiple -dir arguments are given, any file
+in any of the target filesystems are allowed. It would be
+better to allow each filesystem for each separate tree.</p>
+<!-- INDENTATION -->
+<p>Multiple -dir args might also cause some confusing
+effects. Doing</p>
+<!-- INDENTATION -->
+<pre>   -dir some/dir -dir other
+</pre>
+<!-- INDENTATION -->
+<p>will search &quot;some/dir&quot; completely, then search
+&quot;other&quot; completely. This is good. However,
+something like</p>
+<!-- INDENTATION -->
+<pre>   -dir some/dir -dir some/dir/more/specific
+</pre>
+<!-- INDENTATION -->
+<p>will search &quot;some/dir&quot; completely *except for*
+&quot;some/dir/more/specific&quot;, after which it will
+return and be searched. Not really a bug, but just sort of
+odd.</p>
+<!-- INDENTATION -->
+<p>File times (for -newer, etc.) of symbolic links are for
+the file, not the link. This could cause some
+misunderstandings.</p>
+<!-- INDENTATION -->
+<p>Probably more. Please let me know.</p>
+</td>
+</table>
+<a name="AUTHOR"></a>
+<h2>AUTHOR</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>Jeffrey Friedl, Omron Corp (jfriedl@omron.co.jp)<br>
+http://www.wg.omron.co.jp/cgi-bin/j-e/jfriedl.html</p>
+</td>
+</table>
+<a name="LATEST SOURCE"></a>
+<h2>LATEST SOURCE</h2>
+<!-- INDENTATION -->
+<table width="100%" border=0 rules="none" frame="void"
+       cols="2" cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="10%"></td>
+<td width="89%">
+<p>See
+http://www.wg.omron.co.jp/~jfriedl/perl/index.html</p>
+</td>
+</table>
+<hr>
+</body>
+</html>
