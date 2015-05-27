@@ -1,0 +1,13 @@
+#!/bin/bash
+# Time-stamp: 
+
+if [ -n "$1" ]
+then
+    fn=$1
+else
+    echo "Usage: `basename $0` fileName" >&2
+    exit 1
+fi
+
+root="${fn%.*}"
+perl ~/pl/Markdown.pl $fn > $root.html  
