@@ -11,7 +11,5 @@ for line in sys.stdin:
 
     i += 1
 
-    if i > 5:
+    if i > 5:   # 6 lines
         i = 0
-
-

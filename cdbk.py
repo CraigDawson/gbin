@@ -2,26 +2,34 @@
 
 import sys
 import os
-from shutil import copy
+from shutil import move
+from shutil import rmtree
 
 
 def cdbk(full):
-    
+
     def addExt(path, ext):
         return path + ext
 
     last = addExt(full, ".last")
-    old  = addExt(full, ".old")
+    old = addExt(full, ".old")
 
-    if not os.path.isfile(full):
-        return False 
-
-    if os.path.isfile(last):
+    try:
         print last, " -> ", old
-        copy(last, old)
+        if os.path.isdir(old):
+            rmtree(old)
+        move(last, old)
+    except IOError as e:
+        print e
 
-    print full, " -> ", last
-    copy(full, last)
+    try:
+        print full, " -> ", last
+        if os.path.isdir(last):
+            rmtree(last)
+        move(full, last)
+
+    except IOError as e:
+        print e
 
     return True
 
@@ -33,5 +41,3 @@ if len(sys.argv) != 2:
 
 if not cdbk(sys.argv[1]):
     print "Error backing up ", sys.argv[1]
-
-

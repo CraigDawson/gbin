@@ -1,0 +1,27 @@
+#!/bin/bash
+# Time-stamp: Wed Jul 13 05:00 PM 2005 E
+
+if [ "$#" -lt 1 ]
+then
+    echo "Usage: enscriptFile [-l] [-2] [-c] [-k] [-s] files"
+    exit 1
+fi
+
+land=''
+up=''
+color=''
+keep=''
+small=''
+
+for i
+do case $i in
+    -l) land='-r'           ;;
+    -2) up='-2'             ;;
+    -c) color='--color'     ;;
+    -k) keep='y'            ;;
+    -s) small='-f Courier7' ;;
+    *)  base=`basename $i`
+        enscript -GE $land $up $color $small $i
+    esac
+done
+

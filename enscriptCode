@@ -1,0 +1,16 @@
+#!/bin/sh
+# Text File
+# AUTHOR:   cxd
+# FILE:     /home/cxd/bin/enscriptCode
+# ROLE:     TODO (some explanation)
+# CREATED:  2014-08-08 14:35:52
+# MODIFIED: 2014-08-08 14:35:52
+
+if [ "$#" -ne 1 ]
+then
+    echo "Usage: enscriptCode file"
+    exit 1
+fi
+
+enscript --fancy-header --borders --landscape --highlight --color $1 
+

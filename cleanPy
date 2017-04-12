@@ -1,0 +1,2 @@
+#!/bin/bash
+find . \( -name \*~ -o -name \*.[bB][aA][kK] -o -name \*.[pP][yY][cC] \) -exec rm \{\} \;;
